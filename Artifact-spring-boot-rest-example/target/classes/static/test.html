@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=\, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Fetch JSON from API</title>
+</head>
+<body>
+<h1>Sensors Reading....</h1>
+
+<br>
+    bodyTemp : <span id="bodyTemp"></span><br/>
+    Heart Rate : <span id="heartRate"></span><br/>
+    Spo2 Rate: <span id="spo2"></span> </br>
+    Humidity : <span id="humidity"></span><br/>
+    Room Temp: <span id="roomTemp"></span><br/>
+</p>
+<div>This page will reload in <span id="cnt" style="color:red;">3</span> Seconds</div>
+
+<script>
+      const api_url = 'http://localhost:8080/realtimedata';
+
+      async function getISS() {
+        const response = await fetch(api_url);
+        const data = await response.json();
+        const { id,pname,ds,der,dre } = data;
+	for (var i=0; i < data.length; i++) {
+ 	  console.log(data[i]);
+	  document.getElementById('bodyTemp').innerHTML = data[i].bodyTemp;
+	  document.getElementById('heartRate').innerHTML = data[i].heartRate;
+	  document.getElementById('humidity').innerHTML = data[i].humidity;
+	  document.getElementById('roomTemp').innerHTML = data[i].roomTemp;
+	  document.getElementById('spo2').innerHTML = data[i].spo2;
+	}
+      }
+       setTimeout(function(){
+ 	  window.location.reload();
+	}, 2000);
+	 var counter = 3
+
+    // The countdown method.
+    window.setInterval(function () {
+        counter--;
+        if (counter >= 0) {
+            var span;
+            span = document.getElementById("cnt");
+            span.innerHTML = counter;
+        }
+        if (counter === 0) {
+            clearInterval(counter);
+        }
+
+    }, 1000);
+
+    window.setInterval('refresh()', 3000);
+
+    // Refresh or reload page.
+    function refresh() {
+        window  .location.reload();
+    }
+      getISS();
+    </script>
+</body>
+</html>

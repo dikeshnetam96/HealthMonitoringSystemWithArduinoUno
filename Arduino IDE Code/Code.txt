@@ -1,0 +1,128 @@
+#include <Wire.h>
+#include "MAX30105.h"
+#include <DHT.h>
+#include <DHT_U.h>
+
+#define DHTPIN 2     // what pin we're connected to
+#define LM35 A0
+#define RED 7
+#define GREEN 6
+
+float lm_value;
+float tempc;
+
+// Uncomment whatever type you're using!
+#define DHTTYPE DHT11   // DHT 11 
+//#define DHTTYPE DHT22   // DHT 22  (AM2302)
+//#define DHTTYPE DHT21   // DHT 21 (AM2301)
+
+// Initialize DHT sensor for normal 16mhz Arduino
+DHT dht(DHTPIN, DHTTYPE);
+
+MAX30105 particleSensor;
+long lastBeat = 0;
+long unblockedValue;
+float prevH = 0;
+float prevT = 0;
+float prevF = 0;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Initialize sensor
+  if (particleSensor.begin() == false) {
+    Serial.println("MAX30102 was not found. Please check wiring/power.");
+    while (1);
+  }
+  unblockedValue = 0;
+  for (byte x = 0 ; x < 32 ; x++) {
+    unblockedValue += particleSensor.getIR(); //Read the IR value
+  }
+  unblockedValue /= 32;
+  particleSensor.setup(); //Configure sensor. Use 6.4mA for LED drive
+
+  Serial.println("DHTxx test!");
+  Serial.begin(9600);
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+}
+
+void loop() {
+   long red = particleSensor.getRed();
+   long ir = particleSensor.getIR();
+  Serial.print("R : [");
+  Serial.print(red);
+  Serial.print("] IR : [");
+  Serial.print(ir);
+  Serial.println("]");
+ 
+  float Z = red/ir;
+  //  (-45.06*Z + 30.354)*Z + 94.845
+  float spo2 =  (-45.06*Z + 30.354)*Z + 94.845;
+  Serial.print("Spo2 : [");
+  Serial.print(spo2);
+
+  long currentDelta = particleSensor.getIR() - unblockedValue  ;
+    long delta = millis() - lastBeat;
+    lastBeat = millis();
+
+    float beatsPerMinute = (60 / (currentDelta / 1000.0))*100;
+    Serial.print("] beats : [");
+    Serial.print(beatsPerMinute);
+    Serial.println("]");
+
+      lm_value = analogRead(LM35);
+  tempc = (lm_value * 500) / 1023;
+  Serial.print("Body Temperature ");
+  Serial.println(tempc);//Temperature in Celcius
+
+  //Condition
+  if (tempc > 37 || spo2<90) {
+    digitalWrite(RED, HIGH);
+    digitalWrite(GREEN, LOW);
+  }
+  else {
+    digitalWrite(GREEN, HIGH);
+    digitalWrite(RED, LOW);
+  }
+
+  float h = dht.readHumidity();
+  // Read temperature as Celsius
+  float t = dht.readTemperature();
+  // Read temperature as Fahrenheit
+  float f = dht.readTemperature(true);
+  
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    if(prevH==0 && prevT==0 && prevF==0){
+    Serial.println(h);
+    Serial.println(t);
+    Serial.println(f);
+    Serial.println("Failed to read from DHT sensor!");
+    delay(2000);
+    return;
+    }
+    else{
+      h = prevH;
+      t = prevT;
+      f = prevF;
+    }
+  }
+  
+  prevH = h;
+  prevT = t;
+  prevF = f;
+  Serial.print("Humidity: "); 
+  if(h>100){h=h-100;}
+  Serial.print(h);
+  Serial.print(" %\t");
+  if(t<0){t = 18; f = 64.4;}
+  Serial.print("Temperature: "); 
+  Serial.print(t);
+  Serial.print(" *C ");
+  Serial.print(f);
+  Serial.print(" *F\t");
+  Serial.println("");
+  
+ delay(6000);
+}

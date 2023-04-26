@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sensor's Data</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+<body>
+<style>
+body {
+  background-color: lightblue;
+}
+
+h1 {
+  color: white;
+  text-align: center;
+}
+
+p {
+  font-family: verdana;
+  font-size: 20px;
+}
+</style>
+<div class="container">
+  <div class="jumbotron">
+    <h1>Health Monitoring System</h1>
+
+  </div>
+  <div class="row">
+    <div class="col-sm-4">
+      <h3>Spo2</h3>
+      <h4> <span id="humidity"></span> </h4> </br>
+    </div>
+    <div class="col-sm-4">
+      <h3>Body Temperature</h3>
+      <h4> <span id="spo2"></span></h4> <br/>
+    </div>
+    <div class="col-sm-4">
+      <h3>Heart Rate</h3>
+      <h4> <span id="heartRate"></h4> </span><br/>
+    </div>
+	<div class="col-sm-4">
+      <h3>Humidity</h3>
+      <h4> <span id="bodyTemp"></h4> </span><br/>
+    </div>
+	<div class="col-sm-4">
+      <h3>Room Teperature</h3>
+      <h4> <span id="roomTemp"></h4> </span><br/>
+      
+    </div>
+  </div>
+</div>
+
+<script>
+      const api_url = 'http://localhost:8080/realtimedata';
+
+      async function getISS() {
+        const response = await fetch(api_url);
+        const data = await response.json();
+        const { id,pname,ds,der,dre } = data;
+	for (var i=0; i < data.length; i++) {
+ 	  console.log(data[i]);
+	  document.getElementById('bodyTemp').innerHTML = data[i].bodyTemp;
+	  document.getElementById('heartRate').innerHTML = data[i].heartRate;
+	  document.getElementById('humidity').innerHTML = data[i].humidity;
+	  document.getElementById('roomTemp').innerHTML = data[i].roomTemp;
+	  document.getElementById('spo2').innerHTML = data[i].spo2;
+	}
+      }
+       setTimeout(function(){
+ 	  window.location.reload();
+	}, 2000);
+	 var counter = 3
+
+    // The countdown method.
+    window.setInterval(function () {
+        counter--;
+        if (counter >= 0) {
+            var span;
+            span = document.getElementById("cnt");
+            span.innerHTML = counter;
+        }
+        if (counter === 0) {
+            clearInterval(counter);
+        }
+
+    }, 1000);
+
+    window.setInterval('refresh()', 3000);
+
+    // Refresh or reload page.
+    function refresh() {
+        window  .location.reload();
+    }
+      getISS();
+    </script>
+</body>
+</html>
+

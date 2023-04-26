@@ -1,0 +1,6 @@
+Install following softwares :
+
+1. Java 16
+2. Intellij
+3. Tomcat Server
+4. Arduino IDE
